@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#5C2020">
+<meta name="theme-color" content="#332867">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,8 +20,8 @@
     --paper-line:#D9CBAA;
     --ink:#1E2A44;
     --ink-soft:#4A5470;
-    --oxblood:#7A2E2E;
-    --oxblood-dark:#5C2020;
+    --oxblood:#4B3F91;
+    --oxblood-dark:#332867;
     --gold:#A97D3E;
     --gold-soft:#E7D3AD;
     --in-color:#2F6B3D;
@@ -60,6 +60,13 @@
     text-align:center;
     border-bottom:2px solid var(--gold);
     position:relative;
+  }
+  .brand-logo{
+    display:block;
+    max-width:220px;
+    width:60%;
+    height:auto;
+    margin:0 auto 4px;
   }
   .om{
     font-size:26px;
@@ -528,8 +535,7 @@
 
 <div class="sheet" id="main-sheet" style="display:none;">
   <div class="letterhead">
-    <span class="om">🕉️</span>
-    <span class="owner">Cinderella</span>
+    <img src="logo.png" alt="Cinderella" class="brand-logo">
     <h1 class="booktitle" id="page-title">Cash Book</h1>
     <div class="rule-decor"></div>
     <div class="today-badge" id="today-badge">Today — —</div>

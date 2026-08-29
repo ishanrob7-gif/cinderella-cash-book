@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#5C2020">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cinderella">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Cinderella — Cash Book &amp; Bank Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Spectral:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4EEDD;
+    --paper-line:#D9CBAA;
+    --ink:#1E2A44;
+    --ink-soft:#4A5470;
+    --oxblood:#7A2E2E;
+    --oxblood-dark:#5C2020;
+    --gold:#A97D3E;
+    --gold-soft:#E7D3AD;
+    --in-color:#2F6B3D;
+    --out-color:#A5342B;
+    --shadow:rgba(30,42,68,0.18);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#2B2620;
+    font-family:'Spectral', serif;
+    color:var(--ink);
+    min-height:100vh;
+    padding:32px 16px 64px;
+  }
+  .sheet{
+    max-width:880px;
+    margin:0 auto;
+    background:var(--paper);
+    border-radius:4px;
+    box-shadow:0 24px 60px var(--shadow);
+    position:relative;
+    overflow:hidden;
+    border:1px solid var(--paper-line);
+  }
+  .sheet::before{
+    content:"";
+    position:absolute;
+    left:64px; top:0; bottom:0;
+    width:2px;
+    background:var(--oxblood);
+    opacity:0.35;
+  }
+  .letterhead{
+    padding:36px 44px 20px 84px;
+    text-align:center;
+    border-bottom:2px solid var(--gold);
+    position:relative;
+  }
+  .om{
+    font-size:26px;
+    color:var(--oxblood);
+    display:block;
+    margin-bottom:2px;
+  }
+  .owner{
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:3px;
+    color:var(--gold);
+    text-transform:uppercase;
+  }
+  .booktitle{
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size:30px;
+    color:var(--oxblood-dark);
+    margin:6px 0 0;
+  }
+  .rule-decor{
+    width:120px;
+    height:2px;
+    background:repeating-linear-gradient(90deg, var(--oxblood) 0 6px, transparent 6px 10px);
+    margin:10px auto 0;
+    opacity:0.7;
+  }
+
+  .tabs{
+    display:flex;
+    gap:0;
+    padding:18px 84px 0;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .tab{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    padding:10px 22px;
+    cursor:pointer;
+    color:var(--ink-soft);
+    border:1px solid transparent;
+    border-bottom:none;
+    border-radius:6px 6px 0 0;
+    background:transparent;
+    transition:background .15s ease, color .15s ease;
+  }
+  .tab.active{
+    color:var(--oxblood-dark);
+    background:var(--paper);
+    border-color:var(--paper-line);
+    font-weight:600;
+  }
+  .tab:not(.active):hover{
+    color:var(--oxblood);
+  }
+
+  .book-panel{ display:none; padding:28px 44px 44px 84px; }
+  .book-panel.active{ display:block; }
+
+  .balance-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-bottom:20px;
+  }
+  .opening-field{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .opening-field input{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    width:140px;
+    padding:6px 8px;
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+    background:#fffdf7;
+    color:var(--ink);
+    text-align:right;
+  }
+  .opening-field input:focus{ outline:2px solid var(--gold-soft); border-color:var(--gold); }
+
+  .add-btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    letter-spacing:0.5px;
+    background:var(--oxblood-dark);
+    color:#F4EEDD;
+    border:none;
+    padding:10px 18px;
+    border-radius:5px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:background .15s ease, transform .1s ease;
+  }
+  .add-btn:hover{ background:var(--oxblood); }
+  .add-btn:active{ transform:scale(0.97); }
+  .add-btn svg{ width:14px; height:14px; }
+  .btn-group{ display:flex; gap:10px; flex-wrap:wrap; }
+  .pdf-btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    letter-spacing:0.5px;
+    background:#fffdf7;
+    color:var(--oxblood-dark);
+    border:1px solid var(--gold);
+    padding:10px 18px;
+    border-radius:5px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:background .15s ease, transform .1s ease;
+  }
+  .pdf-btn:hover{ background:var(--gold-soft); }
+  .pdf-btn:active{ transform:scale(0.97); }
+  .pdf-btn svg{ width:14px; height:14px; }
+  .pdf-btn:disabled{ opacity:0.55; cursor:default; }
+
+  table.ledger{
+    width:100%;
+    border-collapse:collapse;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13.5px;
+    background:#FFFCF4;
+    border:1px solid var(--paper-line);
+  }
+  table.ledger thead th{
+    background:var(--gold-soft);
+    color:var(--oxblood-dark);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    font-size:11.5px;
+    padding:10px 12px;
+    text-align:left;
+    border-bottom:2px solid var(--gold);
+    position:sticky; top:0;
+  }
+  table.ledger th.num, table.ledger td.num{ text-align:right; }
+  table.ledger td{
+    padding:9px 12px;
+    border-bottom:1px solid var(--paper-line);
+    color:var(--ink);
+    vertical-align:top;
+  }
+  table.ledger tbody tr:hover{ background:#FBF3DF; }
+  table.ledger tbody tr{ cursor:default; }
+  table.ledger tbody tr.row-in{ border-left:3px solid var(--in-color); background:#F5FAF3; }
+  table.ledger tbody tr.row-out{ border-left:3px solid var(--out-color); background:#FCF5F3; }
+  table.ledger tbody tr.row-in:hover{ background:#EAF4E6; }
+  table.ledger tbody tr.row-out:hover{ background:#F8E9E5; }
+  .amt-in{ color:var(--in-color); font-weight:600; }
+  .amt-out{ color:var(--out-color); font-weight:600; }
+  .empty-row td{
+    text-align:center;
+    color:var(--ink-soft);
+    font-style:italic;
+    padding:26px 12px;
+    font-family:'Spectral', serif;
+  }
+  .row-del{
+    background:none; border:none; cursor:pointer; color:var(--ink-soft);
+    font-size:13px; padding:2px 6px; border-radius:4px;
+  }
+  .row-del:hover{ color:var(--out-color); background:#F6E3E0; }
+
+  tfoot td{
+    font-weight:600;
+    padding:11px 12px;
+    border-top:2px solid var(--oxblood);
+    background:var(--gold-soft);
+    color:var(--oxblood-dark);
+  }
+  .closing-line{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:14px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+  }
+  .closing-line .label{ color:var(--ink-soft); }
+  .closing-line .value{ font-weight:600; color:var(--oxblood-dark); }
+
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(20,16,10,0.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    padding:16px;
+  }
+  .overlay.open{ display:flex; }
+  .dialog{
+    background:var(--paper);
+    border:1px solid var(--gold);
+    border-radius:8px;
+    width:100%;
+    max-width:380px;
+    padding:26px 26px 22px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.4);
+  }
+  .dialog h3{
+    font-family:'Playfair Display', serif;
+    margin:0 0 4px;
+    font-size:20px;
+    color:var(--oxblood-dark);
+  }
+  .dialog .sub{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin:0 0 18px;
+  }
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .field input, .field select{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--paper-line);
+    border-radius:5px;
+    background:#fffdf7;
+    font-family:'Spectral', serif;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .field input:focus, .field select:focus{ outline:2px solid var(--gold-soft); border-color:var(--gold); }
+  .type-toggle{ display:flex; gap:8px; }
+  .type-toggle button{
+    flex:1;
+    padding:9px 0;
+    border:1px solid var(--paper-line);
+    border-radius:5px;
+    background:#fffdf7;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.5px;
+    cursor:pointer;
+    color:var(--ink-soft);
+  }
+  .type-toggle button.selected.in{ background:#E4F1E6; border-color:var(--in-color); color:var(--in-color); font-weight:600; }
+  .type-toggle button.selected.out{ background:#F7E5E3; border-color:var(--out-color); color:var(--out-color); font-weight:600; }
+  .error-msg{ font-size:12px; color:var(--out-color); margin-top:4px; display:none; }
+  .dialog-actions{
+    display:flex; justify-content:flex-end; gap:10px; margin-top:20px;
+  }
+  .btn-plain{
+    background:none; border:1px solid var(--paper-line); color:var(--ink-soft);
+    padding:9px 16px; border-radius:5px; cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+  }
+  .btn-plain:hover{ background:#EFE7D2; }
+  .btn-save{
+    background:var(--oxblood-dark); border:1px solid var(--oxblood-dark); color:#F4EEDD;
+    padding:9px 18px; border-radius:5px; cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+  }
+  .btn-save:hover{ background:var(--oxblood); }
+
+  .status-note{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    text-align:center;
+    padding:14px 20px 0;
+    opacity:0.75;
+  }
+
+  .today-badge{
+    margin-top:14px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.5px;
+    color:var(--oxblood-dark);
+    background:var(--gold-soft);
+    border:1px solid var(--gold);
+    padding:6px 14px;
+    border-radius:20px;
+  }
+
+  .hist-book-toggle{ display:flex; gap:8px; margin-bottom:18px; }
+  .hist-book-btn{
+    padding:8px 16px;
+    border:1px solid var(--paper-line);
+    border-radius:6px;
+    background:#fffdf7;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.5px;
+    cursor:pointer;
+    color:var(--ink-soft);
+  }
+  .hist-book-btn.selected{
+    border-color:var(--oxblood);
+    color:var(--oxblood-dark);
+    font-weight:600;
+    background:var(--gold-soft);
+  }
+  .history-layout{ display:flex; gap:22px; align-items:flex-start; }
+  .history-dates{
+    width:230px;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    max-height:540px;
+    overflow-y:auto;
+    padding-right:4px;
+  }
+  .history-date-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:3px;
+    text-align:left;
+    padding:10px 12px;
+    border:1px solid var(--paper-line);
+    border-radius:6px;
+    background:#fffdf7;
+    cursor:pointer;
+    width:100%;
+  }
+  .history-date-btn:hover{ border-color:var(--gold); }
+  .history-date-btn.active{ border-color:var(--oxblood); background:var(--gold-soft); }
+  .history-date-btn .hd-date{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .history-date-btn .hd-meta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+  .history-detail{ flex:1; min-width:0; }
+  .history-detail-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .history-detail-head h4{
+    margin:0;
+    font-family:'Playfair Display', serif;
+    color:var(--oxblood-dark);
+    font-size:17px;
+  }
+  .empty-hint{
+    font-family:'Spectral', serif;
+    font-style:italic;
+    color:var(--ink-soft);
+    padding:20px 0;
+  }
+
+  .session-bar{
+    margin-top:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .logout-btn{
+    background:none;
+    border:1px solid var(--paper-line);
+    color:var(--oxblood-dark);
+    padding:5px 12px;
+    border-radius:14px;
+    cursor:pointer;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+  }
+  .logout-btn:hover{ background:var(--gold-soft); border-color:var(--gold); }
+  .role-badge{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.5px;
+    padding:2px 8px;
+    border-radius:10px;
+    text-transform:uppercase;
+  }
+  .role-badge.owner{ background:var(--gold-soft); color:var(--oxblood-dark); border:1px solid var(--gold); }
+  .role-badge.user{ background:#E4F1E6; color:var(--in-color); border:1px solid var(--in-color); }
+
+  @media (max-width:560px){
+    .sheet::before{ left:26px; }
+    .letterhead, .tabs, .book-panel{ padding-left:40px; }
+    .booktitle{ font-size:24px; }
+    table.ledger{ font-size:12px; }
+    table.ledger td, table.ledger th{ padding:7px 6px; }
+    .history-layout{ flex-direction:column; }
+    .history-dates{ width:100%; max-height:220px; flex-direction:row; flex-wrap:wrap; overflow-x:auto; }
+    .history-date-btn{ min-width:150px; width:auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay open" id="auth-overlay">
+  <div class="dialog" id="auth-dialog">
+    <h3 id="auth-title">Set up owner account</h3>
+    <p class="sub" id="auth-sub">CINDERELLA · CASH &amp; BANK BOOK</p>
+
+    <div id="auth-setup-form">
+      <div class="field">
+        <label for="su-id">Owner user ID</label>
+        <input type="text" id="su-id" autocomplete="username" placeholder="e.g. owner">
+      </div>
+      <div class="field">
+        <label for="su-pass">Password</label>
+        <input type="password" id="su-pass" autocomplete="new-password" placeholder="Choose a password">
+      </div>
+      <div class="field">
+        <label for="su-pass2">Confirm password</label>
+        <input type="password" id="su-pass2" autocomplete="new-password" placeholder="Re-enter password">
+      </div>
+      <div class="error-msg" id="auth-setup-err">Fill both fields — passwords must match.</div>
+      <div class="dialog-actions">
+        <button class="btn-save" id="btn-setup-owner" style="width:100%;">Create owner account</button>
+      </div>
+    </div>
+
+    <div id="auth-login-form" style="display:none;">
+      <div class="field">
+        <label for="li-id">User ID</label>
+        <input type="text" id="li-id" autocomplete="username" placeholder="Your user ID">
+      </div>
+      <div class="field">
+        <label for="li-pass">Password</label>
+        <input type="password" id="li-pass" autocomplete="current-password" placeholder="Your password">
+      </div>
+      <div class="error-msg" id="auth-login-err">Incorrect user ID or password.</div>
+      <div class="dialog-actions">
+        <button class="btn-save" id="btn-login" style="width:100%;">Log in</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="main-sheet" style="display:none;">
+  <div class="letterhead">
+    <span class="om">🕉️</span>
+    <span class="owner">Cinderella</span>
+    <h1 class="booktitle" id="page-title">Cash Book</h1>
+    <div class="rule-decor"></div>
+    <div class="today-badge" id="today-badge">Today — —</div>
+    <div class="session-bar" id="session-bar">
+      <span id="session-user-label">—</span>
+      <button class="logout-btn" id="btn-logout">Log out</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-book="cash" id="tab-cash">Cash Book</button>
+    <button class="tab" data-book="bank" id="tab-bank">Bank Book</button>
+    <button class="tab" data-book="history" id="tab-history">History</button>
+    <button class="tab" data-book="users" id="tab-users" style="display:none;">Users</button>
+  </div>
+
+  <div class="book-panel active" id="panel-cash">
+    <div class="balance-row">
+      <div class="opening-field">
+        <span>Opening balance</span>
+        <input type="number" id="cash-opening" step="0.01" placeholder="0.00">
+      </div>
+      <div class="btn-group">
+        <button class="add-btn" id="btn-add-cash">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add entry
+        </button>
+        <button class="pdf-btn" id="btn-pdf-cash">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          Export PDF
+        </button>
+      </div>
+    </div>
+    <table class="ledger">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Party</th>
+          <th>Particulars</th>
+          <th class="num">Cash in</th>
+          <th class="num">Cash out</th>
+          <th class="num">Balance</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="cash-body"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3">Total</td>
+          <td class="num" id="cash-total-in">0.00</td>
+          <td class="num" id="cash-total-out">0.00</td>
+          <td class="num" id="cash-total-balance">0.00</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div class="closing-line">
+      <span class="label">Closing balance</span>
+      <span class="value" id="cash-closing">0.00</span>
+    </div>
+  </div>
+
+  <div class="book-panel" id="panel-bank">
+    <div class="balance-row">
+      <div class="opening-field">
+        <span>Opening balance</span>
+        <input type="number" id="bank-opening" step="0.01" placeholder="0.00">
+      </div>
+      <div class="btn-group">
+        <button class="add-btn" id="btn-add-bank">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add entry
+        </button>
+        <button class="pdf-btn" id="btn-pdf-bank">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          Export PDF
+        </button>
+      </div>
+    </div>
+    <table class="ledger">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Party</th>
+          <th>Particulars</th>
+          <th class="num">Received</th>
+          <th class="num">Payment</th>
+          <th class="num">Balance</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="bank-body"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3">Total</td>
+          <td class="num" id="bank-total-in">0.00</td>
+          <td class="num" id="bank-total-out">0.00</td>
+          <td class="num" id="bank-total-balance">0.00</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div class="closing-line">
+      <span class="label">Closing balance</span>
+      <span class="value" id="bank-closing">0.00</span>
+    </div>
+  </div>
+
+  <div class="book-panel" id="panel-history">
+    <div class="hist-book-toggle">
+      <button class="hist-book-btn selected" id="hist-book-cash" data-book="cash">Cash Book</button>
+      <button class="hist-book-btn" id="hist-book-bank" data-book="bank">Bank Book</button>
+    </div>
+    <div class="history-layout">
+      <div class="history-dates" id="history-dates"></div>
+      <div class="history-detail" id="history-detail">
+        <p class="empty-hint">Select a date from the left to view that day's entries.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="book-panel" id="panel-users">
+    <div class="balance-row">
+      <div class="opening-field"><span>Owner-only: manage who can use this book</span></div>
+      <div class="btn-group">
+        <button class="add-btn" id="btn-add-user">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add user
+        </button>
+      </div>
+    </div>
+    <table class="ledger">
+      <thead>
+        <tr><th>User ID</th><th>Role</th><th>Access</th><th></th></tr>
+      </thead>
+      <tbody id="users-body"></tbody>
+    </table>
+  </div>
+
+  <div class="status-note" id="status-note">Loading your ledger…</div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="dialog">
+    <h3 id="dialog-title">New entry</h3>
+    <p class="sub" id="dialog-sub">CASH BOOK</p>
+
+    <div class="field">
+      <label for="f-date">Date</label>
+      <input type="date" id="f-date">
+    </div>
+    <div class="field">
+      <label>Type</label>
+      <div class="type-toggle">
+        <button type="button" id="btn-type-in" data-type="in">Cash in</button>
+        <button type="button" id="btn-type-out" data-type="out">Cash out</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="f-party" id="f-party-label">Paid to / received from</label>
+      <input type="text" id="f-party" placeholder="e.g. Ramesh Traders, Ravi Kumar">
+      <div class="error-msg" id="err-party">Enter a name.</div>
+    </div>
+    <div class="field">
+      <label for="f-particulars">Description <span style="text-transform:none; opacity:0.7;">(optional)</span></label>
+      <input type="text" id="f-particulars" placeholder="e.g. Office rent, Invoice #204">
+    </div>
+    <div class="field">
+      <label for="f-amount">Amount</label>
+      <input type="number" id="f-amount" step="0.01" placeholder="0.00">
+      <div class="error-msg" id="err-amount">Enter an amount greater than 0.</div>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="btn-plain" id="btn-cancel">Cancel</button>
+      <button class="btn-save" id="btn-save">Save entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="user-overlay">
+  <div class="dialog">
+    <h3>Add user</h3>
+    <p class="sub">ENTRY-ONLY ACCESS · CANNOT DELETE</p>
+    <div class="field">
+      <label for="nu-id">User ID</label>
+      <input type="text" id="nu-id" placeholder="e.g. ravi">
+    </div>
+    <div class="field">
+      <label for="nu-pass">Password</label>
+      <input type="password" id="nu-pass" placeholder="Set a password">
+    </div>
+    <div class="error-msg" id="err-nu">Enter a user ID and password (ID must be unique).</div>
+    <div class="dialog-actions">
+      <button class="btn-plain" id="btn-nu-cancel">Cancel</button>
+      <button class="btn-save" id="btn-nu-save">Create user</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(function(){
+  var state = {
+    cash: { opening: 0, entries: [] },
+    bank: { opening: 0, entries: [] }
+  };
+  var currentBook = 'cash';
+  var currentType = 'in';
+  var storageOK = true;
+  var histBook = 'cash';
+  var histDate = null;
+  var lastSeenDate = null;
+  var workingDate = null;
+  var lastAdvancedDate = null;
+  var currentUser = null; // { id, role }
+
+  var fmt = function(n){
+    n = Number(n) || 0;
+    return n.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  };
+  var todayISO = function(){
+    var d = new Date();
+    var m = String(d.getMonth()+1).padStart(2,'0');
+    var day = String(d.getDate()).padStart(2,'0');
+    return d.getFullYear()+'-'+m+'-'+day;
+  };
+  var uid = function(){ return 'e' + Date.now() + Math.random().toString(16).slice(2,8); };
+
+  function formatDisplayDate(iso){
+    if(!iso) return '';
+    var p = iso.split('-');
+    var d = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+    return d.toLocaleDateString('en-IN', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+  }
+  function formatDisplayDateShort(iso){
+    if(!iso) return '';
+    var p = iso.split('-');
+    var d = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+    return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+  }
+  function nextDateISO(iso){
+    var p = iso.split('-');
+    var d = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+    d.setDate(d.getDate() + 1);
+    var m = String(d.getMonth()+1).padStart(2,'0');
+    var day = String(d.getDate()).padStart(2,'0');
+    return d.getFullYear()+'-'+m+'-'+day;
+  }
+  function updateTodayBadge(){
+    document.getElementById('today-badge').textContent = 'Current entry date — ' + formatDisplayDate(workingDate || todayISO());
+  }
+  function saveWorkingDate(){
+    ls.set('app:workingDate', workingDate);
+  }
+  function saveLastAdvanced(){
+    ls.set('app:lastAdvancedDate', lastAdvancedDate || '');
+  }
+  function loadWorkingDateState(){
+    workingDate = todayISO();
+    lastAdvancedDate = null;
+    var wd = ls.get('app:workingDate');
+    if(wd) workingDate = wd;
+    var la = ls.get('app:lastAdvancedDate');
+    if(la) lastAdvancedDate = la;
+    var today = todayISO();
+    if(workingDate < today){
+      workingDate = today;
+      saveWorkingDate();
+    }
+  }
+  function advanceWorkingDateIfNeeded(){
+    if(lastAdvancedDate === workingDate) return;
+    lastAdvancedDate = workingDate;
+    workingDate = nextDateISO(workingDate);
+    saveWorkingDate();
+    saveLastAdvanced();
+    updateTodayBadge();
+    if(document.getElementById('panel-history').classList.contains('active')) renderHistoryList();
+  }
+  function watchDateChange(){
+    lastSeenDate = todayISO();
+    setInterval(function(){
+      var now = todayISO();
+      if(now !== lastSeenDate){
+        lastSeenDate = now;
+        if(workingDate < now){
+          workingDate = now;
+          saveWorkingDate();
+        }
+        updateTodayBadge();
+        if(document.getElementById('panel-history').classList.contains('active')){
+          renderHistoryList();
+        }
+      }
+    }, 30000);
+  }
+
+  function labels(book){
+    return book === 'cash'
+      ? { inWord:'Cash in', outWord:'Cash out', inKey:'in', outKey:'out' }
+      : { inWord:'Received', outWord:'Payment', inKey:'in', outKey:'out' };
+  }
+
+  // ---- Local, on-device storage (no server / no Claude.ai dependency, works as a phone app) ----
+  var ls = {
+    get: function(key){
+      try{ var v = window.localStorage.getItem(key); return v === null ? null : v; }
+      catch(e){ storageOK = false; return null; }
+    },
+    set: function(key, value){
+      try{ window.localStorage.setItem(key, value); return true; }
+      catch(e){ storageOK = false; return false; }
+    }
+  };
+
+  function saveStorage(book){
+    if(!storageOK) return;
+    var ok = ls.set('ledger:'+book, JSON.stringify(state[book]));
+    if(!ok) document.getElementById('status-note').textContent = 'Storage unavailable — entries will not persist after you close this.';
+  }
+
+  function loadStorage(){
+    try{
+      ['cash','bank'].forEach(function(b){
+        var raw = ls.get('ledger:'+b);
+        if(raw){
+          var parsed = JSON.parse(raw);
+          if(parsed && typeof parsed === 'object'){
+            state[b].opening = Number(parsed.opening) || 0;
+            state[b].entries = Array.isArray(parsed.entries) ? parsed.entries : [];
+          }
+        }
+      });
+      document.getElementById('status-note').textContent = 'Entries are saved automatically on this device.';
+    }catch(e){
+      storageOK = false;
+      document.getElementById('status-note').textContent = 'Storage unavailable — entries will not persist after you close this.';
+    }
+    loadWorkingDateState();
+    document.getElementById('cash-opening').value = state.cash.opening || '';
+    document.getElementById('bank-opening').value = state.bank.opening || '';
+    render('cash');
+    render('bank');
+    updateTodayBadge();
+    watchDateChange();
+    renderHistoryList();
+  }
+
+  // ---------------- Auth: owner + entry-only users ----------------
+  function simpleHash(str){
+    // Fallback hash (used only if Web Crypto isn't available) — obfuscation, not real security.
+    var h = 0;
+    for(var i=0;i<str.length;i++){ h = (Math.imul(31,h) + str.charCodeAt(i)) | 0; }
+    return 'f' + (h>>>0).toString(16);
+  }
+  function hashPassword(pw){
+    if(window.crypto && window.crypto.subtle){
+      var enc = new TextEncoder().encode('cinderella::' + pw);
+      return window.crypto.subtle.digest('SHA-256', enc).then(function(buf){
+        return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+      });
+    }
+    return Promise.resolve(simpleHash(pw));
+  }
+  function loadUsers(){
+    try{
+      var raw = ls.get('app:users');
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){ return []; }
+  }
+  function saveUsers(users){ ls.set('app:users', JSON.stringify(users)); }
+  function saveSession(userId){ ls.set('app:session', userId || ''); }
+  function loadSession(){ return ls.get('app:session') || ''; }
+
+  function showAuthOverlay(){
+    document.getElementById('auth-overlay').classList.add('open');
+    document.getElementById('main-sheet').style.display = 'none';
+  }
+  function hideAuthOverlay(){
+    document.getElementById('auth-overlay').classList.remove('open');
+    document.getElementById('main-sheet').style.display = '';
+  }
+
+  function updateSessionUI(){
+    document.getElementById('session-user-label').textContent = currentUser
+      ? currentUser.id + ' · ' + (currentUser.role === 'owner' ? 'Owner' : 'User (entry only)')
+      : '—';
+    document.getElementById('tab-users').style.display = (currentUser && currentUser.role === 'owner') ? '' : 'none';
+    if(currentUser && currentUser.role !== 'owner' && document.getElementById('panel-users').classList.contains('active')){
+      switchTab('cash');
+    }
+  }
+
+  function initAuth(){
+    var users = loadUsers();
+    if(users.length === 0){
+      // First run: nobody exists yet — create the owner account.
+      document.getElementById('auth-title').textContent = 'Set up owner account';
+      document.getElementById('auth-setup-form').style.display = '';
+      document.getElementById('auth-login-form').style.display = 'none';
+      showAuthOverlay();
+      return;
+    }
+    var sessionId = loadSession();
+    var match = sessionId ? users.find(function(u){ return u.id === sessionId; }) : null;
+    if(match){
+      currentUser = { id: match.id, role: match.role };
+      hideAuthOverlay();
+      afterLogin();
+      return;
+    }
+    document.getElementById('auth-title').textContent = 'Log in';
+    document.getElementById('auth-setup-form').style.display = 'none';
+    document.getElementById('auth-login-form').style.display = '';
+    showAuthOverlay();
+  }
+
+  function afterLogin(){
+    updateSessionUI();
+    loadStorage();
+    renderUsersPanel();
+  }
+
+  document.getElementById('btn-setup-owner').addEventListener('click', function(){
+    var id = document.getElementById('su-id').value.trim();
+    var pw = document.getElementById('su-pass').value;
+    var pw2 = document.getElementById('su-pass2').value;
+    var err = document.getElementById('auth-setup-err');
+    if(!id || !pw || pw.length < 4 || pw !== pw2){
+      err.textContent = (!id || !pw) ? 'Fill in a user ID and password.' : (pw.length < 4 ? 'Password must be at least 4 characters.' : 'Passwords do not match.');
+      err.style.display = 'block';
+      return;
+    }
+    err.style.display = 'none';
+    hashPassword(pw).then(function(hash){
+      var users = [{ id:id, hash:hash, role:'owner' }];
+      saveUsers(users);
+      saveSession(id);
+      currentUser = { id:id, role:'owner' };
+      hideAuthOverlay();
+      afterLogin();
+    });
+  });
+
+  document.getElementById('btn-login').addEventListener('click', function(){
+    var id = document.getElementById('li-id').value.trim();
+    var pw = document.getElementById('li-pass').value;
+    var err = document.getElementById('auth-login-err');
+    var users = loadUsers();
+    var u = users.find(function(x){ return x.id === id; });
+    if(!u){ err.style.display = 'block'; return; }
+    hashPassword(pw).then(function(hash){
+      if(hash !== u.hash){
+        err.style.display = 'block';
+        return;
+      }
+      err.style.display = 'none';
+      saveSession(id);
+      currentUser = { id:u.id, role:u.role };
+      document.getElementById('li-id').value = '';
+      document.getElementById('li-pass').value = '';
+      hideAuthOverlay();
+      afterLogin();
+    });
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', function(){
+    saveSession('');
+    currentUser = null;
+    document.getElementById('li-id').value = '';
+    document.getElementById('li-pass').value = '';
+    document.getElementById('auth-title').textContent = 'Log in';
+    document.getElementById('auth-setup-form').style.display = 'none';
+    document.getElementById('auth-login-form').style.display = '';
+    document.getElementById('auth-login-err').style.display = 'none';
+    showAuthOverlay();
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Enter') return;
+    if(document.getElementById('auth-setup-form').style.display !== 'none' && document.getElementById('auth-overlay').classList.contains('open')){
+      document.getElementById('btn-setup-owner').click();
+    } else if(document.getElementById('auth-login-form').style.display !== 'none' && document.getElementById('auth-overlay').classList.contains('open')){
+      document.getElementById('btn-login').click();
+    }
+  });
+
+  // ---- Owner-only: create/remove entry-only users ----
+  function renderUsersPanel(){
+    var body = document.getElementById('users-body');
+    if(!body) return;
+    var users = loadUsers();
+    body.innerHTML = '';
+    users.forEach(function(u){
+      var tr = document.createElement('tr');
+      var canDelete = currentUser && currentUser.role === 'owner' && u.role !== 'owner';
+      tr.innerHTML =
+        '<td>' + escapeHTML(u.id) + '</td>' +
+        '<td><span class="role-badge ' + u.role + '">' + (u.role === 'owner' ? 'Owner' : 'User') + '</span></td>' +
+        '<td>' + (u.role === 'owner' ? 'Full access (add, delete, manage users)' : 'Add entries only — cannot delete') + '</td>' +
+        '<td>' + (canDelete ? '<button class="row-del" data-uid="' + escapeHTML(u.id) + '" aria-label="Remove user">✕</button>' : '') + '</td>';
+      body.appendChild(tr);
+    });
+    body.querySelectorAll('.row-del').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(!currentUser || currentUser.role !== 'owner') return;
+        var uid = btn.getAttribute('data-uid');
+        var all = loadUsers().filter(function(u){ return u.id !== uid; });
+        saveUsers(all);
+        renderUsersPanel();
+      });
+    });
+  }
+  document.getElementById('tab-users').addEventListener('click', function(){ switchTab('users'); });
+  document.getElementById('btn-add-user').addEventListener('click', function(){
+    if(!currentUser || currentUser.role !== 'owner') return;
+    document.getElementById('nu-id').value = '';
+    document.getElementById('nu-pass').value = '';
+    document.getElementById('err-nu').style.display = 'none';
+    document.getElementById('user-overlay').classList.add('open');
+  });
+  document.getElementById('btn-nu-cancel').addEventListener('click', function(){
+    document.getElementById('user-overlay').classList.remove('open');
+  });
+  document.getElementById('user-overlay').addEventListener('click', function(e){
+    if(e.target.id === 'user-overlay') document.getElementById('user-overlay').classList.remove('open');
+  });
+  document.getElementById('btn-nu-save').addEventListener('click', function(){
+    if(!currentUser || currentUser.role !== 'owner') return;
+    var id = document.getElementById('nu-id').value.trim();
+    var pw = document.getElementById('nu-pass').value;
+    var err = document.getElementById('err-nu');
+    var users = loadUsers();
+    if(!id || !pw || users.some(function(u){ return u.id === id; })){
+      err.style.display = 'block';
+      return;
+    }
+    err.style.display = 'none';
+    hashPassword(pw).then(function(hash){
+      users.push({ id:id, hash:hash, role:'user' });
+      saveUsers(users);
+      renderUsersPanel();
+      document.getElementById('user-overlay').classList.remove('open');
+    });
+  });
+
+  function sortedEntries(book){
+    return state[book].entries.slice().sort(function(a,b){
+      if(a.date === b.date) return a.seq - b.seq;
+      return a.date < b.date ? -1 : 1;
+    });
+  }
+
+  function render(book){
+    var L = labels(book);
+    var body = document.getElementById(book+'-body');
+    var rows = sortedEntries(book);
+    body.innerHTML = '';
+
+    var running = Number(state[book].opening) || 0;
+    var totalIn = 0, totalOut = 0;
+
+    if(rows.length === 0){
+      var tr = document.createElement('tr');
+      tr.className = 'empty-row';
+      tr.innerHTML = '<td colspan="7">No entries yet. Tap "Add entry" to record one.</td>';
+      body.appendChild(tr);
+    } else {
+      rows.forEach(function(entry){
+        var amt = Number(entry.amount) || 0;
+        if(entry.type === 'in'){ running += amt; totalIn += amt; } else { running -= amt; totalOut += amt; }
+        var canDelete = currentUser && currentUser.role === 'owner';
+        var tr = document.createElement('tr');
+        tr.className = entry.type === 'in' ? 'row-in' : 'row-out';
+        tr.innerHTML =
+          '<td>' + escapeHTML(entry.date) + '</td>' +
+          '<td>' + escapeHTML(entry.party || '—') + '</td>' +
+          '<td>' + escapeHTML(entry.particulars || '—') + '</td>' +
+          '<td class="num amt-in">' + (entry.type === 'in' ? fmt(amt) : '') + '</td>' +
+          '<td class="num amt-out">' + (entry.type === 'out' ? fmt(amt) : '') + '</td>' +
+          '<td class="num">' + fmt(running) + '</td>' +
+          '<td>' + (canDelete ? '<button class="row-del" data-id="' + entry.id + '" data-book="' + book + '" aria-label="Delete entry">✕</button>' : '') + '</td>';
+        body.appendChild(tr);
+      });
+    }
+
+    document.getElementById(book+'-total-in').textContent = fmt(totalIn);
+    document.getElementById(book+'-total-out').textContent = fmt(totalOut);
+    document.getElementById(book+'-total-balance').textContent = fmt(running);
+    document.getElementById(book+'-closing').textContent = fmt(running);
+
+    body.querySelectorAll('.row-del').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(!currentUser || currentUser.role !== 'owner') return;
+        var id = btn.getAttribute('data-id');
+        var bk = btn.getAttribute('data-book');
+        state[bk].entries = state[bk].entries.filter(function(e){ return e.id !== id; });
+        render(bk);
+        saveStorage(bk);
+      });
+    });
+  }
+
+  function escapeHTML(s){
+    var d = document.createElement('div');
+    d.textContent = s == null ? '' : s;
+    return d.innerHTML;
+  }
+
+  function switchTab(tab){
+    if(tab === 'cash' || tab === 'bank') currentBook = tab;
+    document.getElementById('tab-cash').classList.toggle('active', tab === 'cash');
+    document.getElementById('tab-bank').classList.toggle('active', tab === 'bank');
+    document.getElementById('tab-history').classList.toggle('active', tab === 'history');
+    document.getElementById('panel-cash').classList.toggle('active', tab === 'cash');
+    document.getElementById('panel-bank').classList.toggle('active', tab === 'bank');
+    document.getElementById('panel-history').classList.toggle('active', tab === 'history');
+    document.getElementById('tab-users').classList.toggle('active', tab === 'users');
+    document.getElementById('panel-users').classList.toggle('active', tab === 'users');
+    var titles = { cash:'Cash Book', bank:'Bank Book', history:'History', users:'Users' };
+    document.getElementById('page-title').textContent = titles[tab];
+    if(tab === 'history'){
+      renderHistoryList();
+      renderHistoryDetail();
+    }
+    if(tab === 'users'){
+      if(!currentUser || currentUser.role !== 'owner'){ switchTab('cash'); return; }
+      renderUsersPanel();
+    }
+  }
+  document.getElementById('tab-cash').addEventListener('click', function(){ switchTab('cash'); });
+  document.getElementById('tab-bank').addEventListener('click', function(){ switchTab('bank'); });
+  document.getElementById('tab-history').addEventListener('click', function(){ switchTab('history'); });
+
+  function getHistoryDates(book){
+    var seen = {};
+    state[book].entries.forEach(function(e){ seen[e.date] = true; });
+    return Object.keys(seen).sort().reverse();
+  }
+
+  function daySummary(book, date){
+    var rows = sortedEntries(book);
+    var opening = Number(state[book].opening) || 0;
+    var dayEntries = [];
+    rows.forEach(function(entry){
+      var amt = Number(entry.amount) || 0;
+      if(entry.date < date){
+        if(entry.type === 'in') opening += amt; else opening -= amt;
+      } else if(entry.date === date){
+        dayEntries.push(entry);
+      }
+    });
+    var running = opening, totalIn = 0, totalOut = 0;
+    var computed = dayEntries.map(function(entry){
+      var amt = Number(entry.amount) || 0;
+      if(entry.type === 'in'){ running += amt; totalIn += amt; } else { running -= amt; totalOut += amt; }
+      return { entry: entry, balance: running };
+    });
+    return { opening: opening, closing: running, totalIn: totalIn, totalOut: totalOut, entries: computed };
+  }
+
+  function setHistBook(book){
+    histBook = book;
+    histDate = null;
+    document.getElementById('hist-book-cash').classList.toggle('selected', book === 'cash');
+    document.getElementById('hist-book-bank').classList.toggle('selected', book === 'bank');
+    renderHistoryList();
+    renderHistoryDetail();
+  }
+  document.getElementById('hist-book-cash').addEventListener('click', function(){ setHistBook('cash'); });
+  document.getElementById('hist-book-bank').addEventListener('click', function(){ setHistBook('bank'); });
+
+  function renderHistoryList(){
+    var container = document.getElementById('history-dates');
+    var dates = getHistoryDates(histBook);
+    container.innerHTML = '';
+    if(dates.length === 0){
+      container.innerHTML = '<p class="empty-hint">No entries recorded yet.</p>';
+      return;
+    }
+    dates.forEach(function(d){
+      var summary = daySummary(histBook, d);
+      var btn = document.createElement('button');
+      btn.className = 'history-date-btn' + (d === histDate ? ' active' : '');
+      btn.innerHTML = '<span class="hd-date">' + formatDisplayDateShort(d) + '</span>' +
+        '<span class="hd-meta">In ' + fmt(summary.totalIn) + ' &middot; Out ' + fmt(summary.totalOut) + '</span>';
+      btn.addEventListener('click', function(){ histDate = d; renderHistoryList(); renderHistoryDetail(); });
+      container.appendChild(btn);
+    });
+  }
+
+  function renderHistoryDetail(){
+    var detail = document.getElementById('history-detail');
+    if(!histDate){
+      detail.innerHTML = '<p class="empty-hint">Select a date from the left to view that day\'s entries.</p>';
+      return;
+    }
+    var L = labels(histBook);
+    var summary = daySummary(histBook, histDate);
+    var rowsHTML;
+    if(summary.entries.length === 0){
+      rowsHTML = '<tr class="empty-row"><td colspan="5">No entries for this date.</td></tr>';
+    } else {
+      rowsHTML = summary.entries.map(function(item){
+        var e = item.entry;
+        var amt = Number(e.amount) || 0;
+        return '<tr class="' + (e.type === 'in' ? 'row-in' : 'row-out') + '">' +
+          '<td>' + escapeHTML(e.party || '—') + '</td>' +
+          '<td>' + escapeHTML(e.particulars || '—') + '</td>' +
+          '<td class="num amt-in">' + (e.type === 'in' ? fmt(amt) : '') + '</td>' +
+          '<td class="num amt-out">' + (e.type === 'out' ? fmt(amt) : '') + '</td>' +
+          '<td class="num">' + fmt(item.balance) + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+    detail.innerHTML =
+      '<div class="history-detail-head">' +
+        '<h4>' + formatDisplayDate(histDate) + ' &middot; ' + (histBook === 'cash' ? 'Cash Book' : 'Bank Book') + '</h4>' +
+        '<button class="pdf-btn" id="hist-export-btn">Export PDF</button>' +
+      '</div>' +
+      '<table class="ledger"><thead><tr><th>Party</th><th>Particulars</th><th class="num">' + L.inWord + '</th><th class="num">' + L.outWord + '</th><th class="num">Balance</th></tr></thead>' +
+      '<tbody>' + rowsHTML + '</tbody></table>' +
+      '<div class="closing-line"><span class="label">Opening balance</span><span class="value">' + fmt(summary.opening) + '</span></div>' +
+      '<div class="closing-line"><span class="label">Closing balance</span><span class="value">' + fmt(summary.closing) + '</span></div>';
+    document.getElementById('hist-export-btn').addEventListener('click', function(){ exportPDF(histBook, histDate); });
+  }
+
+  ['cash','bank'].forEach(function(book){
+    document.getElementById(book+'-opening').addEventListener('change', function(e){
+      state[book].opening = Number(e.target.value) || 0;
+      render(book);
+      saveStorage(book);
+    });
+  });
+
+  function openDialog(book){
+    currentBook = book;
+    currentType = 'in';
+    var L = labels(book);
+    document.getElementById('dialog-title').textContent = 'New entry';
+    document.getElementById('dialog-sub').textContent = book === 'cash' ? 'CASH BOOK' : 'BANK BOOK';
+    document.getElementById('f-date').value = workingDate || todayISO();
+    document.getElementById('f-party').value = '';
+    document.getElementById('f-particulars').value = '';
+    document.getElementById('f-amount').value = '';
+    document.getElementById('err-party').style.display = 'none';
+    document.getElementById('err-amount').style.display = 'none';
+    document.getElementById('btn-type-in').textContent = L.inWord;
+    document.getElementById('btn-type-out').textContent = L.outWord;
+    updateTypeButtons();
+    document.getElementById('overlay').classList.add('open');
+    setTimeout(function(){ document.getElementById('f-party').focus(); }, 50);
+  }
+  function closeDialog(){
+    document.getElementById('overlay').classList.remove('open');
+  }
+  document.getElementById('btn-add-cash').addEventListener('click', function(){ openDialog('cash'); });
+  document.getElementById('btn-add-bank').addEventListener('click', function(){ openDialog('bank'); });
+  document.getElementById('btn-cancel').addEventListener('click', closeDialog);
+  document.getElementById('overlay').addEventListener('click', function(e){
+    if(e.target.id === 'overlay') closeDialog();
+  });
+
+  function updateTypeButtons(){
+    var inBtn = document.getElementById('btn-type-in');
+    var outBtn = document.getElementById('btn-type-out');
+    inBtn.classList.toggle('selected', currentType === 'in');
+    inBtn.classList.toggle('in', currentType === 'in');
+    outBtn.classList.toggle('selected', currentType === 'out');
+    outBtn.classList.toggle('out', currentType === 'out');
+
+    var partyLabel = document.getElementById('f-party-label');
+    var partyInput = document.getElementById('f-party');
+    if(currentBook === 'cash'){
+      partyLabel.textContent = currentType === 'in' ? 'Received from' : 'Paid to';
+      partyInput.placeholder = currentType === 'in' ? 'e.g. Ravi Kumar, Client name' : 'e.g. Ramesh Traders, Landlord';
+    } else {
+      partyLabel.textContent = currentType === 'in' ? 'Received from' : 'Paid to';
+      partyInput.placeholder = currentType === 'in' ? 'e.g. Client name, ABC Ltd' : 'e.g. Vendor name, Bank charges to';
+    }
+  }
+  document.getElementById('btn-type-in').addEventListener('click', function(){ currentType = 'in'; updateTypeButtons(); });
+  document.getElementById('btn-type-out').addEventListener('click', function(){ currentType = 'out'; updateTypeButtons(); });
+
+  document.getElementById('btn-save').addEventListener('click', function(){
+    var date = document.getElementById('f-date').value || todayISO();
+    var party = document.getElementById('f-party').value.trim();
+    var particulars = document.getElementById('f-particulars').value.trim();
+    var amount = parseFloat(document.getElementById('f-amount').value);
+
+    var ok = true;
+    if(!party){
+      document.getElementById('err-party').style.display = 'block';
+      ok = false;
+    } else {
+      document.getElementById('err-party').style.display = 'none';
+    }
+    if(!amount || amount <= 0 || isNaN(amount)){
+      document.getElementById('err-amount').style.display = 'block';
+      ok = false;
+    } else {
+      document.getElementById('err-amount').style.display = 'none';
+    }
+    if(!ok) return;
+
+    var entry = {
+      id: uid(),
+      date: date,
+      party: party,
+      particulars: particulars,
+      type: currentType,
+      amount: amount,
+      seq: state[currentBook].entries.length
+    };
+    state[currentBook].entries.push(entry);
+    render(currentBook);
+    saveStorage(currentBook);
+    closeDialog();
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && document.getElementById('overlay').classList.contains('open')) closeDialog();
+  });
+
+  function buildDayBodyHTML(book, date){
+    var L = labels(book);
+    var summary = daySummary(book, date);
+    var rowsHTML = '';
+    if(summary.entries.length === 0){
+      rowsHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;">No entries recorded</td></tr>';
+    } else {
+      rowsHTML = summary.entries.map(function(item){
+        var e = item.entry;
+        var amt = Number(e.amount) || 0;
+        return '<tr>' +
+          '<td>' + escapeHTML(e.party || '—') + '</td>' +
+          '<td>' + escapeHTML(e.particulars || '—') + '</td>' +
+          '<td style="text-align:right;">' + (e.type === 'in' ? fmt(amt) : '') + '</td>' +
+          '<td style="text-align:right;">' + (e.type === 'out' ? fmt(amt) : '') + '</td>' +
+          '<td style="text-align:right;">' + fmt(item.balance) + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+    return '<p class="meta">Date: ' + formatDisplayDate(date) + ' &nbsp;|&nbsp; Opening balance: ' + fmt(summary.opening) + '</p>' +
+      '<table><thead><tr><th>Party</th><th>Particulars</th><th style="text-align:right;">' + L.inWord + '</th><th style="text-align:right;">' + L.outWord + '</th><th style="text-align:right;">Balance</th></tr></thead>' +
+      '<tbody>' + rowsHTML + '</tbody>' +
+      '<tfoot><tr><td colspan="2">Total</td><td style="text-align:right;">' + fmt(summary.totalIn) + '</td><td style="text-align:right;">' + fmt(summary.totalOut) + '</td><td style="text-align:right;">' + fmt(summary.closing) + '</td></tr></tfoot></table>' +
+      '<p class="closing">Closing balance: ' + fmt(summary.closing) + '</p>';
+  }
+
+  function printFallback(book, dateFilter){
+    if(dateFilter){
+      openPrintWindow(book, ' — Day Book', buildDayBodyHTML(book, dateFilter));
+      return;
+    }
+    // Full export: one standalone print window per date, not one combined document.
+    var dates = getHistoryDates(book).slice().reverse();
+    if(dates.length === 0){
+      openPrintWindow(book, '', '<p style="text-align:center;padding:20px;">No entries recorded</p>');
+      return;
+    }
+    var i = 0;
+    (function next(){
+      if(i >= dates.length) return;
+      openPrintWindow(book, ' — Day Book', buildDayBodyHTML(book, dates[i]));
+      i++;
+      setTimeout(next, 300);
+    })();
+  }
+
+  function openPrintWindow(book, subtitle, bodyHTML){
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + (book === 'cash' ? 'Cash Book' : 'Bank Book') + '</title>' +
+      '<style>' +
+      'body{font-family:Georgia,serif;color:#1E2A44;padding:32px;}' +
+      'h1{text-align:center;color:#5C2020;margin:0 0 2px;font-size:24px;}' +
+      'p.owner{text-align:center;color:#A97D3E;letter-spacing:2px;margin:0 0 4px;font-size:13px;}' +
+      'p.meta{color:#4A5470;font-size:12px;margin:0 0 14px;}' +
+      'table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px;}' +
+      'th,td{border:1px solid #D9CBAA;padding:8px 10px;}' +
+      'th{background:#E7D3AD;color:#5C2020;text-align:left;}' +
+      'tfoot td{font-weight:bold;background:#E7D3AD;color:#5C2020;}' +
+      '.closing{text-align:right;font-weight:bold;margin:0 0 4px;font-size:14px;color:#5C2020;}' +
+      '@media print{ body{padding:0 24px;} }' +
+      '</style></head><body>' +
+      '<p class="owner">CINDERELLA</p>' +
+      '<h1>' + (book === 'cash' ? 'Cash Book' : 'Bank Book') + subtitle + '</h1>' +
+      bodyHTML +
+      '<script>window.onload = function(){ window.print(); };<\/script>' +
+      '</body></html>';
+    var w = window.open('', '_blank');
+    if(!w){
+      alert('Your browser blocked the print window. Please allow pop-ups for this page and try again.');
+      return;
+    }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
+
+  function exportPDF(book, dateFilter){
+    var btn = dateFilter ? document.getElementById('hist-export-btn') : document.getElementById('btn-pdf-' + book);
+    var origText = btn ? btn.innerHTML : '';
+
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      printFallback(book, dateFilter);
+      return;
+    }
+
+    if(btn){ btn.disabled = true; btn.innerHTML = 'Preparing…'; }
+    function resetBtn(){ if(btn){ btn.disabled = false; btn.innerHTML = origText; } }
+
+    var L = labels(book);
+    var oxblood = [92, 32, 32], gold = [169, 125, 62], inkSoft = [74, 84, 112], ink = [30, 42, 68], goldBg = [231, 211, 173], lineCol = [217, 203, 170];
+
+    function buildDayDoc(date){
+      var doc = new window.jspdf.jsPDF({ unit:'pt', format:'a4' });
+      var pageWidth = doc.internal.pageSize.getWidth();
+      var pageHeight = doc.internal.pageSize.getHeight();
+      var marginX = 40;
+      var cols = [
+        { key:'party', label:'Party', x:marginX, w:130, align:'left' },
+        { key:'particulars', label:'Particulars', x:marginX+130, w:160, align:'left' },
+        { key:'inVal', label:L.inWord, x:marginX+290, w:73, align:'right' },
+        { key:'outVal', label:L.outWord, x:marginX+363, w:73, align:'right' },
+        { key:'balance', label:'Balance', x:marginX+436, w:pageWidth-marginX-(marginX+436), align:'right' }
+      ];
+
+      function drawPageHead(y0, titleSuffix, metaLeft, metaRight){
+        doc.setFont('times', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor.apply(doc, gold);
+        doc.text('CINDERELLA', pageWidth/2, y0, { align:'center' });
+        doc.setFontSize(20);
+        doc.setTextColor.apply(doc, oxblood);
+        doc.text((book === 'cash' ? 'CASH BOOK' : 'BANK BOOK') + titleSuffix, pageWidth/2, y0+22, { align:'center' });
+        doc.setDrawColor.apply(doc, gold);
+        doc.setLineWidth(1);
+        doc.line(marginX, y0+36, pageWidth-marginX, y0+36);
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor.apply(doc, inkSoft);
+        doc.text(metaLeft, marginX, y0+52);
+        doc.text(metaRight, pageWidth-marginX, y0+52, { align:'right' });
+        return y0 + 52;
+      }
+
+      function drawTableHeader(y){
+        doc.setFillColor.apply(doc, goldBg);
+        doc.rect(marginX, y, pageWidth-marginX*2, 20, 'F');
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor.apply(doc, oxblood);
+        cols.forEach(function(c){
+          var tx = c.align === 'right' ? c.x + c.w - 4 : c.x + 4;
+          doc.text(c.label, tx, y+13, { align: c.align });
+        });
+        return y + 20;
+      }
+
+      function drawRow(row, y){
+        var wrappedParty = doc.splitTextToSize(row.party, cols[0].w - 8);
+        var wrappedDesc = doc.splitTextToSize(row.particulars, cols[1].w - 8);
+        var maxLines = Math.max(wrappedParty.length, wrappedDesc.length);
+        var rowH = Math.max(16, maxLines * 10 + 6);
+        if(y + rowH > pageHeight - 70){
+          doc.addPage();
+          y = 40;
+          y = drawTableHeader(y);
+          doc.setFont('courier', 'normal');
+          doc.setFontSize(8.5);
+        }
+        doc.setTextColor.apply(doc, ink);
+        doc.text(wrappedParty, cols[0].x+4, y+11);
+        doc.text(wrappedDesc, cols[1].x+4, y+11);
+        doc.text(row.inVal, cols[2].x+cols[2].w-4, y+11, { align:'right' });
+        doc.text(row.outVal, cols[3].x+cols[3].w-4, y+11, { align:'right' });
+        doc.text(row.balance, cols[4].x+cols[4].w-4, y+11, { align:'right' });
+        doc.setDrawColor.apply(doc, lineCol);
+        doc.setLineWidth(0.5);
+        doc.line(marginX, y+rowH, pageWidth-marginX, y+rowH);
+        return y + rowH;
+      }
+
+      function drawTotalsBar(y, label, inTotal, outTotal, balance){
+        if(y + 24 > pageHeight - 60){ doc.addPage(); y = 40; }
+        doc.setFillColor.apply(doc, goldBg);
+        doc.rect(marginX, y, pageWidth-marginX*2, 20, 'F');
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor.apply(doc, oxblood);
+        doc.text(label, marginX+4, y+13);
+        doc.text(fmt(inTotal), cols[2].x+cols[2].w-4, y+13, { align:'right' });
+        doc.text(fmt(outTotal), cols[3].x+cols[3].w-4, y+13, { align:'right' });
+        doc.text(fmt(balance), cols[4].x+cols[4].w-4, y+13, { align:'right' });
+        return y + 34;
+      }
+
+      function drawClosing(y, balance){
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor.apply(doc, oxblood);
+        doc.text('Closing balance: ' + fmt(balance), pageWidth-marginX, y, { align:'right' });
+      }
+
+      var summary = daySummary(book, date);
+      var rows = summary.entries.map(function(item){
+        var amt = Number(item.entry.amount) || 0;
+        return {
+          party: item.entry.party || '—',
+          particulars: item.entry.particulars || '—',
+          inVal: item.entry.type === 'in' ? fmt(amt) : '',
+          outVal: item.entry.type === 'out' ? fmt(amt) : '',
+          balance: fmt(item.balance)
+        };
+      });
+      var y = drawPageHead(46, ' — DAY BOOK', 'Date: ' + formatDisplayDate(date), 'Opening balance: ' + fmt(summary.opening));
+      y += 16;
+      y = drawTableHeader(y);
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(8.5);
+      if(rows.length === 0){
+        doc.setTextColor.apply(doc, inkSoft);
+        doc.text('No entries recorded', pageWidth/2, y+16, { align:'center' });
+        y += 26;
+      } else {
+        rows.forEach(function(row){ y = drawRow(row, y); });
+      }
+      y = drawTotalsBar(y, 'Total', summary.totalIn, summary.totalOut, summary.closing);
+      drawClosing(y, summary.closing);
+
+      return doc;
+    }
+
+    function saveBlob(blob, filename){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    }
+
+    function buildAndSaveEmpty(){
+      var doc = new window.jspdf.jsPDF({ unit:'pt', format:'a4' });
+      var pageWidth = doc.internal.pageSize.getWidth();
+      var marginX = 40;
+      doc.setFont('times', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor.apply(doc, gold);
+      doc.text('CINDERELLA', pageWidth/2, 46, { align:'center' });
+      doc.setFontSize(20);
+      doc.setTextColor.apply(doc, oxblood);
+      doc.text(book === 'cash' ? 'CASH BOOK' : 'BANK BOOK', pageWidth/2, 68, { align:'center' });
+      doc.setDrawColor.apply(doc, gold);
+      doc.setLineWidth(1);
+      doc.line(marginX, 82, pageWidth-marginX, 82);
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor.apply(doc, inkSoft);
+      doc.text('Opening balance: ' + fmt(state[book].opening), marginX, 98);
+      doc.text('Exported: ' + todayISO(), pageWidth-marginX, 98, { align:'right' });
+      doc.setFontSize(10);
+      doc.text('No entries recorded', pageWidth/2, 140, { align:'center' });
+      doc.save((book === 'cash' ? 'cash-book_' : 'bank-book_') + todayISO() + '.pdf');
+    }
+
+    if(dateFilter){
+      try{ buildDayDoc(dateFilter).save((book === 'cash' ? 'cash-book_' : 'bank-book_') + dateFilter + '.pdf'); }
+      catch(err){ printFallback(book, dateFilter); }
+      finally{ resetBtn(); }
+      return;
+    }
+
+    var dates = getHistoryDates(book).slice().reverse();
+    if(dates.length === 0){
+      try{ buildAndSaveEmpty(); }
+      catch(err){ printFallback(book, null); }
+      finally{ resetBtn(); }
+      return;
+    }
+
+    if(dates.length === 1){
+      try{ buildDayDoc(dates[0]).save((book === 'cash' ? 'cash-book_' : 'bank-book_') + dates[0] + '.pdf'); }
+      catch(err){ printFallback(book, dates[0]); }
+      finally{ resetBtn(); }
+      return;
+    }
+
+    if(!window.JSZip){
+      // No zip support available — fall back to opening one print window per date.
+      resetBtn();
+      printFallback(book, null);
+      return;
+    }
+
+    try{
+      var zip = new window.JSZip();
+      dates.forEach(function(date){
+        var doc = buildDayDoc(date);
+        var arrbuf = doc.output('arraybuffer');
+        zip.file((book === 'cash' ? 'cash-book_' : 'bank-book_') + date + '.pdf', arrbuf);
+      });
+      zip.generateAsync({ type:'blob' }).then(function(blob){
+        saveBlob(blob, (book === 'cash' ? 'cash-book_days_' : 'bank-book_days_') + todayISO() + '.zip');
+        resetBtn();
+      }).catch(function(){
+        resetBtn();
+        printFallback(book, null);
+      });
+    }catch(err){
+      resetBtn();
+      printFallback(book, null);
+    }
+  }
+
+  document.getElementById('btn-pdf-cash').addEventListener('click', function(){ exportPDF('cash'); advanceWorkingDateIfNeeded(); });
+  document.getElementById('btn-pdf-bank').addEventListener('click', function(){ exportPDF('bank'); advanceWorkingDateIfNeeded(); });
+
+  initAuth();
+
+  if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){ /* offline install not available on this host */ });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
